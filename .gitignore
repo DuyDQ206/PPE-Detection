@@ -4,8 +4,7 @@ __pycache__/
 *.pyc
 
 # Bỏ qua dữ liệu lớn & trọng số mô hình
-data/raw/
-data/processed/
+data/
 *.pt
 *.pth
 *.onnx
