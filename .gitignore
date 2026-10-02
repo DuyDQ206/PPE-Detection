@@ -1,0 +1,13 @@
+# .gitignore
+.venv/
+__pycache__/
+*.pyc
+
+# Bỏ qua dữ liệu lớn & trọng số mô hình
+data/raw/
+data/processed/
+*.pt
+*.pth
+*.onnx
+runs/
+.DS_Store
