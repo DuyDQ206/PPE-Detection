@@ -1,55 +1,47 @@
-# PPE Detection — YOLO11s
+# PPE Detection với YOLO11s
 
-Nhánh `feature/yolo11` chứa phần model YOLO11: notebook đã train trên Kaggle,
-checkpoint để chạy local, lệnh train/evaluate/predict và kết quả thực nghiệm.
-Model nhận diện **boots, helmet, person, vest** theo đúng thứ tự ID 0–3.
+Nhận diện trang bị bảo hộ lao động bằng YOLO11s với 4 lớp: **boots**, **helmet**,
+**person** và **vest**. Repository gồm các notebook xử lý dữ liệu, huấn luyện trên
+Kaggle, kết quả thực nghiệm và code chạy dự đoán trên ảnh, video, webcam.
 
-## Kết quả thực tế
+## Kết quả thực nghiệm
 
-Kết quả **validation** trên 222 ảnh, YOLO11s, input 640, Tesla T4:
+Model được huấn luyện với 3.052 ảnh train và đánh giá trên 222 ảnh validation.
 
-| Model | Params (M) | GFLOPs | P | R | F1 | mAP50 | mAP50–95 | Latency (ms/ảnh) |
+| Model | Params (M) | GFLOPs | Precision | Recall | F1 | mAP50 | mAP50–95 | Latency (ms/ảnh) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | YOLO11s | 9.4143 | 21.4263 | 0.7645 | 0.7997 | 0.7786 | 0.8203 | 0.4937 | 9.9191 |
 
-P/R/F1/mAP dùng thang 0–1. Latency là inference trung bình mỗi ảnh trong validation
-batch 16, FP32; chưa phải latency batch 1 hoặc tốc độ toàn ứng dụng.
-Nguồn số liệu, kết quả theo lớp, biểu đồ và giới hạn nằm ở
-[reports/yolo11s/README.md](reports/yolo11s/README.md).
+Các chỉ số P/R/F1/mAP sử dụng thang 0–1. Params và GFLOPs được tính trên model sau
+fuse, input 640 × 640. Latency là thời gian inference trung bình mỗi ảnh khi
+validation trên Tesla T4, batch 16, FP32; chưa bao gồm đọc/ghi file, preprocess và
+postprocess. Chưa có kết quả đánh giá trên tập test độc lập.
 
-## Cấu trúc hiện tại
+Chi tiết cấu hình, kết quả từng lớp và biểu đồ: [Báo cáo YOLO11s](reports/yolo11s/README.md).
+
+### Ví dụ dự đoán trên tập validation
+
+![YOLO11s PPE detection](reports/yolo11s/examples/prediction_01.jpg)
+
+## Cấu trúc dự án
 
 ```text
 PPE-Detection/
-├── configs/ppe4.yaml                    # Cấu hình dataset 4 lớp cho local
-├── data/preprocessed/                  # Dataset local, được Git bỏ qua
-├── models/yolo11s/
-│   ├── best.pt                         # Checkpoint local, được Git bỏ qua
-│   ├── metadata.json                   # SHA256, class mapping, nguồn checkpoint
-│   └── README.md
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_data_preprocessing.ipynb
-│   └── 03_training_yolo11_kaggle.ipynb  # Notebook và output Kaggle
-├── reports/yolo11s/                     # Metrics, plots, bằng chứng gốc
-├── src/
-│   ├── config.py
-│   ├── data_loader.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── predict.py
-│   └── utils.py
-├── main.py
-├── requirements.txt
+├── configs/                 # Cấu hình dataset
+├── models/yolo11s/          # Metadata và vị trí đặt best.pt
+├── notebooks/              # EDA, tiền xử lý và huấn luyện
+├── reports/yolo11s/         # Metrics, biểu đồ và ảnh dự đoán
+├── src/                    # Train, evaluate, predict và các hàm dùng chung
+├── main.py                 # Chạy các chức năng từ dòng lệnh
+├── requirements.txt        # Thư viện chạy model
 └── requirements-notebooks.txt
 ```
 
-FastAPI và Streamlit thuộc phần tích hợp hệ thống của dự án. Chưa có code API/UI
-trong repo hiện tại; nhánh này hoàn thiện phần model.
+Dataset, trọng số và kết quả chạy local trong `runs/` được Git bỏ qua.
 
 ## Cài đặt
 
-Chạy từ thư mục gốc repo. Dùng Python 3.11 hoặc 3.12 cho môi trường mới:
+Sử dụng Python 3.11 hoặc 3.12. Các lệnh dưới đây chạy bằng PowerShell:
 
 ```powershell
 git clone --branch feature/yolo11 https://github.com/DuyDQ206/PPE-Detection.git
@@ -59,126 +51,117 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Lệnh clone nhánh dùng được sau khi chủ repo push `feature/yolo11` lên GitHub.
 Trên Linux/macOS, kích hoạt môi trường bằng `source .venv/bin/activate`.
-Nếu dùng CUDA, cài bản PyTorch/torchvision phù hợp GPU và CUDA trước khi cài
-requirements. Có thể chạy CPU bằng `--device cpu`.
-
-Để chạy EDA/preprocessing/notebook hoặc tải raw dataset:
+Để chạy các notebook, cài thêm:
 
 ```powershell
 python -m pip install -r requirements-notebooks.txt
 ```
 
-## Đưa checkpoint Kaggle vào repo local
+## Chuẩn bị trọng số
 
-Notebook giữ code và output; checkpoint nằm trong ZIP kết quả. Giải nén ZIP rồi
-chép `ppe_yolo11s/weights/best.pt` vào `models/yolo11s/best.pt`, hoặc dùng PowerShell:
+Giải nén ZIP kết quả Kaggle và chép file `ppe_yolo11s/weights/best.pt` vào:
 
-```powershell
-Expand-Archive -LiteralPath "path/to/results.zip" -DestinationPath "runs/kaggle"
-Copy-Item -LiteralPath "runs/kaggle/ppe_yolo11s/weights/best.pt" -Destination "models/yolo11s/best.pt"
+```text
+models/yolo11s/best.pt
 ```
 
-Báo cáo, metadata và notebook đã có trong repo. Một số nhãn YOLO11n trong kết quả
-Kaggle gốc đã được sửa thành YOLO11s dựa trên cấu hình train; các số đo được giữ nguyên.
-
-Người clone repo có thể tải `best.pt` từ GitHub Release do chủ repo xuất bản rồi
-đặt vào `models/yolo11s/`. Kiểm tra hash bằng:
+File `.pt` không được lưu trực tiếp trong Git. Có thể kiểm tra checkpoint bằng
+SHA256 và đối chiếu với [metadata.json](models/yolo11s/metadata.json):
 
 ```powershell
 Get-FileHash models/yolo11s/best.pt -Algorithm SHA256
 ```
 
-So sánh với `sha256` trong [metadata.json](models/yolo11s/metadata.json).
-Repo chưa có URL checkpoint cho đến khi chủ repo tạo Release.
+## Chạy dự đoán
 
-## Predict bằng model đã train
-
-Chỉ cần checkpoint, không cần dataset hoặc train lại:
+Chạy từ thư mục gốc dự án sau khi đã đặt trọng số đúng vị trí:
 
 ```powershell
+# Ảnh, chạy trên CPU
 python main.py predict --source "path/to/image.jpg" --device cpu
+
+# Video, chạy trên GPU NVIDIA
 python main.py predict --source "path/to/video.mp4" --device 0
+
+# Webcam
 python main.py predict --source 0 --show --device 0
 ```
 
-Ảnh/video kết quả và nhãn YOLO kèm confidence được lưu dưới `runs/predict/`.
-Mặc định confidence 0.5; đổi bằng `--conf 0.25`.
-Có thể dùng module: `python -m src.predict --source ...`.
-Xem tùy chọn bằng `python main.py predict --help`.
+Confidence mặc định là 0.5, có thể thay bằng `--conf 0.25`. Ảnh/video dự đoán và
+nhãn kèm confidence được lưu trong `runs/predict/`.
 
-## Dữ liệu để evaluate hoặc train
+## Chuẩn bị dữ liệu
 
-Dùng đúng dataset 4 lớp của lần train Kaggle:
+Đặt dataset đã tiền xử lý trong `data/preprocessed/`:
 
 ```text
 data/preprocessed/
-├── train/images/   + train/labels/
-├── valid/images/   + valid/labels/
-└── test/images/    + test/labels/   # Chỉ cần khi evaluate --split test
+├── train/
+│   ├── images/
+│   └── labels/
+├── valid/
+│   ├── images/
+│   └── labels/
+└── test/                   # Cần khi đánh giá với --split test
+    ├── images/
+    └── labels/
 ```
 
-ID bắt buộc: `0 boots`, `1 helmet`, `2 person`, `3 vest`.
-[configs/ppe4.yaml](configs/ppe4.yaml) đã khai báo mapping này.
-Dataset 8 lớp từ workflow cũ cần kiểm tra và chuẩn hóa riêng. Không đổi riêng
-`names` để ép khớp checkpoint vì sẽ làm sai ID nhãn.
+Nhãn ở định dạng YOLO: `class_id x_center y_center width height`, tọa độ chuẩn hóa
+về 0–1. Mapping lớp phải khớp [configs/ppe4.yaml](configs/ppe4.yaml):
 
-Dataset ở nơi khác: truyền `--data-root`. Nếu có YAML riêng, truyền `--data`;
-path tương đối được tính theo vị trí YAML. `--data-root` hỗ trợ di chuyển path
-tuyệt đối cũ từ Kaggle về local. YAML cần cả `train` và `val`; các download hook
-trong YAML bị loại bỏ.
+| ID | Lớp |
+| ---: | --- |
+| 0 | boots |
+| 1 | helmet |
+| 2 | person |
+| 3 | vest |
 
-## Evaluate và xuất độ đo
+Nếu dataset nằm ở thư mục khác, truyền `--data-root "path/to/dataset"`.
+Dùng `--data "path/to/data.yaml"` để chọn YAML riêng; path tương đối trong YAML
+được tính theo vị trí file. YAML cần khai báo `train`, `val` và `names`.
+
+## Đánh giá model
 
 ```powershell
 python main.py evaluate --split val --device cpu
-python main.py evaluate --data "path/to/data.yaml" --data-root "path/to/dataset" --split test --device 0
 ```
 
-Lệnh tạo thư mục mới dưới `runs/evaluate/`, chứa:
+Để đánh giá tập test đã chuẩn bị riêng:
 
-- `metrics_summary.csv`: Params, GFLOPs, P, R, F1, mAP50, mAP50–95, latency inference.
-- `summary.json`: số đo, split, device, phiên bản thư viện và cấu hình thời gian.
-- `per_class_metrics.csv`: P/R/F1/mAP theo lớp; lớp chưa được đánh giá để trống.
-- Confusion matrix và các đường cong do Ultralytics xuất.
+```powershell
+python main.py evaluate --split test --device 0
+```
 
-Báo cáo Kaggle trong `reports/yolo11s/` được giữ làm bằng chứng cho lần train ban đầu.
-Test split phải tồn tại; code không tự đổi sang validation.
+Kết quả được lưu trong `runs/evaluate/`:
 
-## Train lại khi cần
+- `metrics_summary.csv`: Params, GFLOPs, Precision, Recall, F1, mAP50, mAP50–95 và latency.
+- `summary.json`: kết quả và thông tin môi trường đo.
+- `per_class_metrics.csv`: các chỉ số theo từng lớp.
+- Confusion matrix và các đường cong đánh giá.
+
+## Huấn luyện
 
 ```powershell
 python main.py train --epochs 100 --batch 16 --imgsz 640 --device 0
 ```
 
-Mặc định dùng `yolo11s.pt`, seed 42, patience 20, workers 2, tương ứng baseline Kaggle.
-Checkpoint mới nằm dưới `runs/train/ppe_yolo11s*/weights/`.
-Ultralytics có thể tải pretrained weights ở lần train đầu nếu chưa có trên máy.
+Mặc định dùng pretrained `yolo11s.pt`, seed 42 và patience 20. Checkpoint được lưu
+trong `runs/train/ppe_yolo11s*/weights/`. Lần train trên Kaggle dừng ở epoch 93;
+mAP50–95 validation trong lịch sử train cao nhất tại epoch 73.
 
-## Tải dữ liệu gốc
+Các notebook của dự án:
 
-Repo cũ từng chứa khóa Roboflow trong `src/GetData.py`. Code đã chuyển sang biến
-môi trường; chủ khóa cần thay/thu hồi khóa cũ vì nó vẫn có thể nằm trong lịch sử Git.
-Để tải raw dataset, tạo `.env` từ `.env.example`, điền `ROBOFLOW_API_KEY`, rồi chạy
-`python -m src.GetData --output data/raw`. Dataset raw vẫn cần preprocessing.
+1. [Khảo sát dữ liệu](notebooks/01_eda.ipynb)
+2. [Tiền xử lý dữ liệu](notebooks/02_data_preprocessing.ipynb)
+3. [Huấn luyện YOLO11s trên Kaggle](notebooks/03_training_yolo11_kaggle.ipynb)
 
-## Đưa nhánh lên GitHub và chia sẻ trọng số
+Xem các tùy chọn bằng `python main.py train --help`, `python main.py evaluate --help`
+hoặc `python main.py predict --help`.
 
-```powershell
-git switch feature/yolo11
-git add .
-git diff --cached --stat
-git commit -m "Integrate trained YOLO11s PPE model and experiment reports"
-git push -u origin feature/yolo11
-```
+## Giới hạn
 
-`.gitignore` loại dataset, `.pt/.onnx`, outputs trong `runs/`, môi trường ảo và `.env`.
-
-Sau khi push, tạo GitHub Release tag `yolo11s-ppe-v1`, chọn target `feature/yolo11`,
-đính kèm `models/yolo11s/best.pt` làm asset. Ghi SHA256 từ metadata trong release notes,
-rồi thêm link Release thật vào README. Trọng số chỉ có trên local đến khi bước này xong.
-
-Để nhập phần model vào `main`, mở Pull Request từ `feature/yolo11` sang `main` cho nhóm
-review. Phần API/UI có thể dùng `src.utils.load_detector()` để tải checkpoint;
-thứ tự lớp và đường dẫn mặc định nằm trong `src/config.py`.
+Model nhận diện 4 lớp hiện có; việc không phát hiện mũ, áo hoặc giày chưa đủ để kết
+luận một người vi phạm quy định bảo hộ. Khả năng nhận diện boots còn thấp hơn các
+lớp còn lại; cần đánh giá thêm trên dữ liệu camera thực tế trước khi triển khai.
