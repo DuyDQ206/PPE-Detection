@@ -1,0 +1,12 @@
+# Paths are resolved relative to this YAML by src.data_loader.
+# Place the SAME four-class dataset used on Kaggle in data/preprocessed/.
+path: ../data/preprocessed
+train: train/images
+val: valid/images
+test: test/images
+nc: 4
+names:
+  0: boots
+  1: helmet
+  2: person
+  3: vest

@@ -1,0 +1,6 @@
+-r requirements.txt
+ipykernel>=6,<8
+matplotlib>=3.8,<4
+seaborn>=0.13,<1
+roboflow>=1.1,<2
+python-dotenv>=1,<2
