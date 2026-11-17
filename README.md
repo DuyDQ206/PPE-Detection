@@ -39,9 +39,6 @@ PPE-Detection/
 │   ├── evaluate.py
 │   ├── predict.py
 │   └── utils.py
-├── tools/import_yolo11_results.py
-├── tests/test_yolo11.py
-├── .github/workflows/yolo11.yml
 ├── main.py
 ├── requirements.txt
 └── requirements-notebooks.txt
@@ -75,16 +72,16 @@ python -m pip install -r requirements-notebooks.txt
 
 ## Đưa checkpoint Kaggle vào repo local
 
-Notebook giữ code và output; checkpoint nằm trong ZIP kết quả. Import bằng:
+Notebook giữ code và output; checkpoint nằm trong ZIP kết quả. Giải nén ZIP rồi
+chép `ppe_yolo11s/weights/best.pt` vào `models/yolo11s/best.pt`, hoặc dùng PowerShell:
 
 ```powershell
-python tools/import_yolo11_results.py "E:/download chrome/ppe_yolo11s_results (1).zip" --notebook "E:/download chrome/ppe-yolo11-kaggle.ipynb"
+Expand-Archive -LiteralPath "path/to/results.zip" -DestinationPath "runs/kaggle"
+Copy-Item -LiteralPath "runs/kaggle/ppe_yolo11s/weights/best.pt" -Destination "models/yolo11s/best.pt"
 ```
 
-Lệnh tạo `models/yolo11s/best.pt`, metadata, báo cáo và bản notebook trong repo.
-Số đo gốc được giữ nguyên; các nhãn model cũ YOLO11n được sửa thành YOLO11s dựa trên
-cấu hình train. File gốc trong Download được giữ nguyên. Nếu đích đã có checkpoint
-khác, lệnh sẽ dừng để tránh ghi đè.
+Báo cáo, metadata và notebook đã có trong repo. Một số nhãn YOLO11n trong kết quả
+Kaggle gốc đã được sửa thành YOLO11s dựa trên cấu hình train; các số đo được giữ nguyên.
 
 Người clone repo có thể tải `best.pt` từ GitHub Release do chủ repo xuất bản rồi
 đặt vào `models/yolo11s/`. Kiểm tra hash bằng:
@@ -159,14 +156,7 @@ Mặc định dùng `yolo11s.pt`, seed 42, patience 20, workers 2, tương ứng
 Checkpoint mới nằm dưới `runs/train/ppe_yolo11s*/weights/`.
 Ultralytics có thể tải pretrained weights ở lần train đầu nếu chưa có trên máy.
 
-## Kiểm tra trước khi push
-
-```powershell
-python -m unittest discover -s tests -v
-git status --short
-```
-
-GitHub Actions chạy cùng kiểm tra offline, không train model hoặc tải checkpoint.
+## Tải dữ liệu gốc
 
 Repo cũ từng chứa khóa Roboflow trong `src/GetData.py`. Code đã chuyển sang biến
 môi trường; chủ khóa cần thay/thu hồi khóa cũ vì nó vẫn có thể nằm trong lịch sử Git.
