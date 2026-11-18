@@ -1,10 +1,10 @@
-"""Defaults for the four-class YOLO11s PPE experiment."""
+"""Defaults for the eight-class YOLO11s PPE-5 experiment."""
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA = PROJECT_ROOT / 'configs' / 'ppe4.yaml'
+DEFAULT_DATA = PROJECT_ROOT / 'configs' / 'ppe8.yaml'
 DEFAULT_WEIGHTS = PROJECT_ROOT / 'models' / 'yolo11s' / 'best.pt'
-CLASS_NAMES = ('boots', 'helmet', 'person', 'vest')
+CLASS_NAMES = ('boots', 'helmet', 'helmet on', 'no boots', 'no helmet', 'no vest', 'person', 'vest')
 IMAGE_SIZE = 640
 BATCH_SIZE = 16
 SEED = 42

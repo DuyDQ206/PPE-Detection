@@ -13,7 +13,7 @@ def load_detector(weights):
     weights = Path(weights).expanduser().resolve()
     if not weights.is_file():
         raise FileNotFoundError(
-            f'Checkpoint missing: {weights}. Copy ppe_yolo11s/weights/best.pt from the Kaggle ZIP '
+            f'Checkpoint missing: {weights}. Copy ppe_yolo11s-2/weights/best.pt from the Kaggle ZIP '
             'to models/yolo11s/best.pt, or supply --weights with your checkpoint path.'
         )
     model = YOLO(str(weights))

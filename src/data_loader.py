@@ -1,4 +1,4 @@
-"""Validate the four-class dataset and relocate YAML paths for local execution."""
+"""Validate the eight-class dataset and relocate YAML paths for local execution."""
 import hashlib
 from pathlib import Path, PurePosixPath, PureWindowsPath
 

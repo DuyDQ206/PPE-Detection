@@ -1,10 +1,20 @@
-train: /kaggle/input/datasets/duydq206/ppe5-data/data_preprocessed/data/train/images
-val: /kaggle/input/datasets/duydq206/ppe5-data/data_preprocessed/data/valid/images
-test: /kaggle/input/datasets/duydq206/ppe5-data/data_preprocessed/data/test/images
-nc: 4
 names:
 - boots
 - helmet
+- helmet on
+- no boots
+- no helmet
+- no vest
 - person
 - vest
-path: /kaggle/input/datasets/duydq206/ppe5-data/data_preprocessed/data
+nc: 8
+roboflow:
+  license: MIT
+  project: ppe-fruwx
+  url: https://universe.roboflow.com/constructionsite/ppe-fruwx/dataset/5
+  version: 5
+  workspace: constructionsite
+test: /kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data/test/images
+train: /kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data/train/images
+val: /kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data/valid/images
+path: /kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data

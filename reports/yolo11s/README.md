@@ -1,52 +1,75 @@
-# Kết quả YOLO11s trên validation
+# Kết quả YOLO11s trên PPE-5
 
-Nguồn: `ppe_yolo11s_results (1).zip`, notebook Kaggle chạy ngày 17/11/2026.
-Trọng số và ZIP được nhận diện bằng SHA256 trong `models/yolo11s/metadata.json`.
+Nguồn: `ppe_yolo11s-2_results.zip` và `ppe-yolo11-kaggle (1).ipynb`, chạy ngày 18/11/2026.
+Model dùng 8 lớp theo đúng thứ tự trong `source_data.yaml` và checkpoint metadata.
+
+## Kết quả validation
 
 | Params (M) | GFLOPs | P | R | F1 | mAP50 | mAP50–95 | Latency inference (ms/ảnh) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 9.4143 | 21.4263 | 0.7645 | 0.7997 | 0.7786 | 0.8203 | 0.4937 | 9.9191 |
+| 9.4159 | 21.4349 | 0.6098 | 0.8041 | 0.6829 | 0.7028 | 0.4426 | 10.3133 |
 
-Đây là kết quả **validation**, gồm 222 ảnh; tập train có 3.052 ảnh. Chưa có kết quả
-đánh giá tập test trong ZIP. P/R/F1/mAP dùng thang 0–1.
+P/R/F1/mAP dùng thang 0–1. Các độ đo được giữ nguyên từ ZIP.
 
-- Model: pretrained `yolo11s.pt`; ảnh 640, batch 16, seed 42, patience 20.
-- Yêu cầu 100 epochs; dừng sau 93 epochs; mAP50–95 validation trong `results.csv`
-  cao nhất ở epoch 73. Validation lại `best.pt` có thể khác nhẹ so với hàng epoch 73.
-- GPU Kaggle: Tesla T4, Ultralytics 8.4.215, PyTorch 2.11.0+cu128.
-- Params và GFLOPs tính trên model sau fuse; FLOPs tính ở input `[1, 3, 640, 640]`.
-- F1 là trung bình F1 các lớp tại ngưỡng confidence Ultralytics chọn để tối đa hóa
-  F1 trung bình ở IoU 0.5. Lệnh predict mặc định dùng confidence 0.5.
-- Latency là thời gian inference trung bình mỗi ảnh trong validation batch 16, FP32.
-  Preprocess 0.9395 ms, postprocess 1.5094 ms; tổng ba công đoạn 12.3680 ms/ảnh.
-  Phép đo loại trừ đọc/ghi file; chưa phải latency batch 1 hay tốc độ webcam toàn hệ thống.
+| ID | Lớp | mAP50 |
+| ---: | --- | ---: |
+| 0 | boots | 0.8535 |
+| 1 | helmet | 0.9102 |
+| 2 | helmet on | 0.3992 |
+| 3 | no boots | 0.2659 |
+| 4 | no helmet | 0.6719 |
+| 5 | no vest | 0.6880 |
+| 6 | person | 0.8676 |
+| 7 | vest | 0.9661 |
 
-| Lớp | mAP50 |
-| --- | ---: |
-| boots | 0.5078 |
-| helmet | 0.9378 |
-| person | 0.9396 |
-| vest | 0.8960 |
+## Cấu hình thực nghiệm
 
-## Các file bằng chứng
+- Dataset: `/kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data`.
+- Model khởi tạo: `yolo11s.pt`; tên lần chạy: `ppe_yolo11s-2`.
+- 100 epochs, ảnh 640, batch 16, seed 42, patience 20.
+- mAP50–95 validation cao nhất trong `results.csv` ở epoch 92.
+  Validation lại `best.pt` có thể khác nhẹ so với số liệu tại epoch đó.
+- GPU: Tesla T4; Ultralytics 8.4.215; PyTorch 2.11.0+cu128.
+- Params/GFLOPs tính sau fuse, với input `[1, 3, 640, 640]`.
+- P/R/F1 lấy tại ngưỡng confidence do Ultralytics chọn để tối đa hóa F1 trung bình
+  ở IoU 0.5. Đây không phải P/R/F1 được cố định tại ngưỡng predict 0.5.
+- Predict chạy từng ảnh validation với `conf=0.5`, xuất 555 ảnh. Chưa có bước tuning
+  confidence hoặc đánh giá/predict trên test trong notebook này.
 
-- `summary.json`, `metrics_summary.csv`: kết quả giữ nguyên số đo, sửa nhãn model thành YOLO11s.
-- `source_summary.json`, `source_metrics_summary.csv`, `source_data.yaml`: bằng chứng gốc từ ZIP.
-  Các file gốc có nhãn `YOLO11n`/`yolo11n.pt` và tên thư mục validation cũ.
-  `args.yaml` và checkpoint xác nhận kiến trúc thực tế là YOLO11s; xem ghi chú trong metadata.
-- `results.csv`, `results.png`: lịch sử train; `args.yaml`: cấu hình train gốc.
-- `environment.txt`: thư viện phiên Kaggle, dùng tham chiếu; không cài toàn bộ môi trường này lên máy local.
-- Confusion matrix, F1/PR curves và `examples/`: kết quả xuất sẵn từ Kaggle.
-- Notebook trong `notebooks/03_training_yolo11_kaggle.ipynb` đã được chuẩn bị để
-  train lại trên dataset `ppe-5/data`, với output cũ được xóa. Báo cáo này vẫn
-  thuộc lần train trước; các file kết quả và bằng chứng gốc được giữ tại đây.
+Latency là inference trung bình mỗi ảnh khi validation batch 16, FP32. Preprocess
+1.0092 ms, postprocess 1.0368 ms; tổng ba công đoạn 12.3593 ms/ảnh. Các số này loại
+trừ đọc/ghi file và chưa phải benchmark batch 1 hay tốc độ webcam toàn hệ thống.
 
-## Giới hạn
+## Số ảnh và cảnh báo dữ liệu
 
-Checkpoint chỉ có 4 lớp PPE/person, chưa có các lớp `no helmet`, `no vest` hay
-`no boots`. Không thể kết luận một công nhân vi phạm PPE chỉ từ việc thiếu detection.
-Lớp boots có mAP thấp hơn các lớp còn lại. Kết quả validation không thay thế đánh giá
-trên test độc lập hay dữ liệu camera triển khai.
+| Split | Ảnh tìm thấy | Bị bỏ qua do nhãn lỗi | Ảnh được sử dụng |
+| --- | ---: | ---: | ---: |
+| Train | 3.537 | 12 | 3.525 |
+| Validation | 555 | 3 | 552 |
+
+Log notebook có cảnh báo `labels mix segment and detection rows` và cảnh báo trộn
+box/segment. Ultralytics bỏ qua 12 ảnh train và 3 ảnh validation; dòng đánh giá
+cuối cùng xác nhận **552 ảnh validation, 2.969 instances**. Số lượng tìm thấy trong
+JSON gốc chỉ đếm file ảnh, chưa trừ các ảnh bị bỏ qua.
+
+`source_summary.json` giữ nguyên số đếm gốc. `summary.json` dùng số ảnh thực tế sau
+khi loại ảnh lỗi, đồng thời lưu `train_images_found`, `val_images_found` và số ảnh
+bị bỏ qua để đối chiếu. Trước lần train tiếp theo cần chuẩn hóa nhãn detection;
+báo cáo này không tự sửa nhãn hoặc chạy lại model.
+
+## Các file kết quả
+
+- `summary.json`, `metrics_summary.csv`: độ đo và metadata của lần chạy mới.
+- `source_summary.json`, `source_metrics_summary.csv`, `source_data.yaml`: file gốc từ ZIP.
+- `results.csv`, `results.png`, `args.yaml`: lịch sử và cấu hình huấn luyện.
+- `per_class_map50.csv`: mAP50 theo 8 lớp.
+- `environment.txt`: môi trường Kaggle để tham chiếu.
+- Confusion matrix, F1/PR curves và `examples/`: output mới từ ZIP.
+- `models/yolo11s/metadata.json`: SHA256 của checkpoint, ZIP và notebook nguồn.
+
+Không so sánh trực tiếp mAP tổng hợp với lần chạy 4 lớp trước: số lớp, dataset và
+tập đánh giá đã thay đổi. Hai lớp `no boots` và `helmet on` có mAP thấp nhất; chưa
+có kết quả test độc lập để kết luận khả năng tổng quát hóa.
 
 ![Training curves](results.png)
 

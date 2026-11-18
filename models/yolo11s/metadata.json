@@ -4,25 +4,30 @@
   "names": {
     "0": "boots",
     "1": "helmet",
-    "2": "person",
-    "3": "vest"
+    "2": "helmet on",
+    "3": "no boots",
+    "4": "no helmet",
+    "5": "no vest",
+    "6": "person",
+    "7": "vest"
   },
   "checkpoint": "models/yolo11s/best.pt",
-  "sha256": "633a8060d6265818a6c9f3a9765cb717f671875e20572795dbe07474d0938788",
-  "bytes": 19185882,
+  "sha256": "68c4a19294fd957be074dc7d45d9cc5870a5eb57644b1361da823998a6fcd5db",
+  "bytes": 19189978,
   "training_model": "yolo11s.pt",
   "imgsz": 640,
   "ultralytics": "8.4.215",
   "torch": "2.11.0+cu128",
-  "archive_name": "ppe_yolo11s_results (1).zip",
-  "archive_sha256": "10580ec5d71db38d87b5bcc30849b17b84915753aa6e24119e5816d67836f9f6",
-  "archive_checkpoint_entry": "ppe_yolo11s/weights/best.pt",
+  "archive_name": "ppe_yolo11s-2_results.zip",
+  "archive_sha256": "c4237aa75bc9f95070b57787de8e0d8a15bcbc5c85d1cfceca9f301eb21afcdb",
+  "archive_checkpoint_entry": "ppe_yolo11s-2/weights/best.pt",
+  "run_name": "ppe_yolo11s-2",
+  "dataset_path": "/kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data",
   "split_reported": "val",
-  "corrections": [
-    "Source summary.model and CSV Model said YOLO11n; corrected to YOLO11s using train args and checkpoint.",
-    "Source validation/prediction directory names retain yolo11n; those are historical run names."
-  ],
-  "source_notebook_sha256": "b1081027e6ffbab67d3741e93be184570b0dde85b35eeb91e65a9d1e6920cb2c",
-  "repository_notebook_sha256": "263ce16ea542acd973d419e3b9cff4255000fcbbd9f4d39fdcfb6a19281cd3ce",
-  "repository_notebook_revision": "8b87dd0"
+  "source_notebook_sha256": "e6faa8603532bf3242f34eb022c87fd8fe1fd661fc22f611111ef9c530e13cce",
+  "repository_notebook_sha256": "9f8c68d234942c4e55ba6c639cb76acdb3ddd9e87d25a47bae4dd0341b115c9c",
+  "epochs_completed": 100,
+  "best_epoch": 92,
+  "prediction_confidence": 0.5,
+  "confidence_tuned": false
 }
