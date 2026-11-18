@@ -1,124 +1,125 @@
-# 🥽 Real-Time PPE Detection System
+# 🥽 ĐỒ ÁN MÔN HỌC: HỆ THỐNG NHẬN DIỆN TRANG BỊ BẢO HỘ LAO ĐỘNG (PPE DETECTION)
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Framework](https://img.shields.io/badge/YOLO-v8%20%7C%20v11-orange.svg)](https://docs.ultralytics.com/)
-[![Backend](https://img.shields.io/badge/FastAPI-0.100%2B-green.svg)](https://fastapi.tiangolo.com/)
-[![Frontend](https://img.shields.io/badge/Streamlit-1.25%2B-red.svg)](https://streamlit.io/)
-
-> **Hệ thống nhận diện trang thiết bị bảo hộ lao động (PPE) thời gian thực** hỗ trợ giám sát an toàn tại công trường xây dựng và nhà máy.
+> **Môn học:** Thị giác máy tính (Computer Vision) / Học sâu (Deep Learning)  
+> **Ứng dụng:** Giám sát an toàn lao động tại công trường xây dựng và nhà xưởng sản xuất  
+> **Công nghệ lõi:** Ultralytics YOLO (YOLO26 & YOLO11), OpenCV, Streamlit, PyTorch  
 
 ---
 
-## 📌 Tổng Quan (Overview)
+## 📌 1. Giới Thiệu Đề Tài (Overview)
 
-Việc tuân thủ quy định an toàn lao động là yếu tố sống còn tại các công trường. Dự án **PPE Detection System** ứng dụng các mô hình thị giác máy tính tiên tiến (Computer Vision) để tự động phát hiện công nhân có trang bị đầy đủ Mũ bảo hộ (`Helmet`), Áo phản quang (`Vest`), Giày bảo hộ (`Boots`) hay không qua luồng Camera/Video giám sát.
+Tai nạn lao động tại các công trường xây dựng và khu công nghiệp là vấn đề nhức nhối, trong đó nguyên nhân lớn xuất phát từ việc công nhân không tuân thủ quy định mang đầy đủ **Trang thiết bị bảo hộ cá nhân (Personal Protective Equipment - PPE)** như mũ bảo hộ (`helmet`) và áo phản quang (`vest`).
 
-### ✨ Tính Năng Nổi Bật (Features)
-* 🎯 **Phát hiện đa lớp PPE:** Nhận diện đồng thời `Helmet`, `NO-Helmet`, `Vest`, `NO-Vest`, `Person`.
-* ⚡ **Xử lý thời gian thực (Real-time):** Tối ưu hóa mô hình đạt tốc độ suy luận cao trên video/webcam.
-* 🌐 **RESTful API:** Cung cấp API Backend bằng FastAPI hỗ trợ nhận dạng qua file ảnh/video.
-* 🖥️ **Giao diện trực quan (Web UI):** Demo tương tác đơn giản, dễ sử dụng được dựng bằng Streamlit.
-
----
-
-## 🛠️ Công Nghệ Sử Dụng (Tech Stack)
-
-* **Core Models:** YOLOv8, YOLO11, Faster R-CNN / RT-DETR.
-* **Backend:** Python, FastAPI, Uvicorn, OpenCV.
-* **Frontend:** Streamlit.
-* **Data Processing:** PyTorch, Ultralytics, Albumentations, Pandas.
+Mục tiêu của đồ án là xây dựng một **hệ thống nhận diện PPE tự động** có khả năng:
+* 🎯 **Phát hiện đồng thời 8 lớp đối tượng:** `boots`, `helmet`, `helmet on`, `no boots`, `no helmet`, `no vest`, `person`, `vest`.
+* 🚨 **Cảnh báo vi phạm an toàn:** Tự động phát hiện và khoanh vùng nổi bật các trường hợp vi phạm quy định (`no helmet`, `no vest`).
+* ⚡ **Xử lý thời gian thực:** Đạt tốc độ cao trên ảnh, video và luồng webcam trực tiếp.
+* 🖥️ **Giao diện Demo trực quan:** Xây dựng Web UI tương tác thân thiện bằng Streamlit giúp người dùng và hội đồng đánh giá có thể kiểm thử dễ dàng.
 
 ---
 
-## 📁 Cấu Trúc Dự Án (Project Structure)
+## 📊 2. Kết Quả Huấn Luyện & So Sánh Thực Nghiệm (Model Comparison)
+
+Trong đồ án này, hai kiến trúc mô hình đã được huấn luyện thực nghiệm qua 100 epochs trên cùng bộ dữ liệu:
+
+| Chỉ Số Đánh Giá | 🥇 YOLO26 Nano (`yolo26n.pt`) | 🥈 YOLO11 Small (`yolo11.pt`) | Nhận Xét & Đánh Giá |
+| :--- | :---: | :---: | :--- |
+| **Độ chính xác mAP@0.50** | **72.20%** | **70.25%** | **YOLO26n cao hơn +1.95%** |
+| **Độ phủ (Recall - Bắt lỗi vi phạm)** | **80.67%** | **80.45%** | **YOLO26n bắt lỗi vi phạm tốt hơn** |
+| **Độ chính xác toàn diện mAP50-95** | **44.20%** | **44.20%** | Ngang nhau |
+| **Kích thước file mô hình (.pt)** | **5.46 MB** | **19.19 MB** | **YOLO26n nhẹ hơn ~3.5 lần** |
+| **Tốc độ suy luận (Inference Speed)** | **~5 ms / frame** | **~15 ms / frame** | **YOLO26n nhanh hơn ~3 lần** |
+| **Khả năng xử lý Video/Webcam** | **Rất mượt mà trên CPU/GPU** | Đòi hỏi phần cứng mạnh hơn | **YOLO26n tối ưu cho thời gian thực** |
+
+### 💡 Kết luận lựa chọn mô hình:
+* **`yolo26n.pt` được chọn làm mô hình mặc định chính:** Mô hình đạt độ chính xác mAP50 cao hơn (72.2%), độ phủ bắt lỗi vi phạm vượt trội (80.67%), dung lượng siêu nhỏ gọn (5.46MB) và tốc độ suy luận nhanh gấp ~3 lần.
+* Trên giao diện Demo, hệ thống vẫn tích hợp cả 2 mô hình để người dùng có thể chuyển đổi so sánh trực quan.
+
+---
+
+## 📁 3. Cấu Trúc Thư Mục Dự Án (Directory Structure)
 
 ```text
 PPE-Detection/
-├── api/                  # FastAPI Backend Server
-│   └── main_api.py
-├── data/                 # Dataset (Raw & Preprocessed)
-│   ├── raw/
-│   └── preprocessed/
-├── models/               # Chứa các file trọng số (.pt, .onnx)
-├── notebooks/            # Jupyter Notebooks (EDA, Preprocessing, Training)
-│   ├── 01_eda.ipynb
-│   ├── 02_data_preprocessing.ipynb
-│   └── 03_training_yolov8.ipynb
-├── src/                  # Core modules (Train, Eval, Predict)
-│   ├── config.py
-│   ├── train.py
-│   └── predict.py
-├── ui/                   # Streamlit Frontend Web Application
-│   └── app_streamlit.py
-├── .gitignore
-├── main.py
-├── README.md
-└── requirements.txt
+├── data/
+│   ├── raw/                           # Dataset gốc (train / valid / test và data.yaml)
+│   ├── preprocessed/                  # Dữ liệu sau tiền xử lý
+│   └── process.py                     # Script tiền xử lý và chuẩn hóa nhãn dataset
+├── models/                            # Trọng số mô hình đã huấn luyện (.pt)
+│   ├── yolo11.pt                      # Mô hình YOLO11 Small (19.19 MB)
+│   └── yolo26n.pt                     # Mô hình YOLO26 Nano (5.46 MB - Mô hình chính)
+├── notebooks/                         # Các Jupyter Notebook nghiên cứu & huấn luyện
+│   ├── 01_eda.ipynb                   # Phân tích khám phá dữ liệu (EDA)
+│   ├── 02_data_preprocessing.ipynb   # Tiền xử lý dữ liệu và nhãn
+│   ├── 03_training_yolo11_kaggle.ipynb # Huấn luyện mô hình YOLO11
+│   └── 03_training_yolo26n.ipynb        # Huấn luyện mô hình YOLO26n
+├── app.py                             # Giao diện Demo chính (Streamlit Web UI)
+├── main.py                            # Script khởi chạy ứng dụng bằng Python
+├── run_ui.bat                         # Phím tắt khởi chạy 1-click trên Windows
+├── requirements.txt                   # Danh sách các thư viện cần thiết
+└── README.md                          # Tài liệu báo cáo tổng quan đồ án
 ```
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Dự Án (Quickstart)
+## ✨ 4. Các Tính Năng Nổi Bật Của Giao Diện Demo (`app.py`)
 
-### 1. Yêu cầu môi trường
-* Python >= 3.10
-* Git
-* Card đồ họa NVIDIA (Khuyến khích để huấn luyện mô hình nhanh hơn)
+1. **🖼️ Nhận diện qua Hình ảnh (Image Detection):**
+   - Tải ảnh từ máy tính hoặc **chọn nhanh ảnh mẫu thực tế** có sẵn từ tập `test` để kiểm thử ngay.
+   - Thanh trượt điều chỉnh ngưỡng tin cậy (Confidence) và ngưỡng NMS (IoU).
+   - Chọn lọc hiển thị các lớp PPE mong muốn.
+   - Chế độ so sánh ảnh gốc vs ảnh sau nhận diện (Side-by-side).
+   - Hệ thống thẻ trạng thái an toàn: Thông báo **ĐẠT TIÊU CHUẨN AN TOÀN** (xanh lá) hoặc **CẢNH BÁO VI PHẠM** (đỏ).
+   - Tải ảnh kết quả về máy chất lượng cao.
 
-### 2. Cài đặt các thư viện (Installation)
-```bash
-# Clone repository
-git clone [https://github.com/username/PPE-Detection.git](https://github.com/username/PPE-Detection.git)
-cd PPE-Detection
+2. **🎬 Nhận diện qua Video (Video Detection):**
+   - Hỗ trợ các định dạng video: MP4, AVI, MOV, MKV.
+   - Tùy chọn **Frame Skip** giúp tăng tốc độ xử lý video dài gấp nhiều lần.
+   - Thanh tiến trình thời gian thực, FPS và màn hình xem trước (Live Preview).
+   - Tự động mã hóa chuẩn H.264 tương thích mọi trình duyệt web.
+   - Tải video kết quả đã khoanh vùng và gắn bảng cảnh báo.
 
-# Tạo và kích hoạt môi trường ảo (Virtual Environment)
-python -m venv .venv
+3. **📷 Kiểm soát an toàn qua Camera (Webcam):**
+   - Chụp ảnh trực tiếp từ camera để kiểm tra công nhân trước khi vào cổng công trường.
+
+4. **📊 Bảng So sánh Mô hình (Benchmark Tab):**
+   - Hiển thị bảng số liệu so sánh chi tiết giữa `yolo26n.pt` và `yolo11.pt`.
+
+---
+
+## 🚀 5. Hướng Dẫn Cài Đặt & Khởi Chạy (Quickstart)
+
+### Bước 1: Kích hoạt môi trường ảo (Virtual Environment)
+Mở terminal tại thư mục gốc `PPE-Detection`:
+```powershell
 # Trên Windows:
-.venv\Scripts\activate
-# Trên Linux/macOS:
-source .venv/bin/activate
+.\.venv\Scripts\activate
+```
 
-# Cài đặt các thư viện cần thiết
+### Bước 2: Cài đặt thư viện (nếu cần cài mới)
+```powershell
 pip install -r requirements.txt
 ```
 
-### 3. Huấn luyện mô hình (Training)
-```bash
-# Chạy script huấn luyện mô hình YOLOv8
-python src/train.py --model yolov8s --epochs 50 --batch 16
-```
+### Bước 3: Khởi chạy Giao diện Demo
+Bạn có thể chọn **1 trong 3 cách** cực kỳ đơn giản sau:
 
-### 4. Khởi chạy ứng dụng (Run App)
-```bash
-# Bước 1: Khởi chạy Backend API (Terminal 1)
-uvicorn api.main_api:app --reload --port 8000
+- **Cách 1 (Nhanh nhất trên Windows):** Click đúp chuột vào file `run_ui.bat`.
+- **Cách 2 (Khuyên dùng):** Chạy lệnh Streamlit từ terminal:
+  ```powershell
+  streamlit run app.py
+  ```
+- **Cách 3:** Chạy qua Python:
+  ```powershell
+  python main.py
+  ```
 
-# Bước 2: Khởi chạy Frontend UI (Terminal 2)
-streamlit run ui/app_streamlit.py
-```
-
----
-
-## 📊 Kết Quả Thực Nghiệm (Experiments & Metrics)
-
-Bảng so sánh hiệu năng giữa các kiến trúc mô hình thử nghiệm trên tập dữ liệu Test:
-
-| Model | mAP@0.5 (%) | Recall (%) | Precision (%) | FPS | Model Size (MB) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **YOLOv8s** | 88.5% | 85.2% | 89.1% | 45 | 22.5 MB |
-| **YOLO11s** | **91.2%** | **88.0%** | **92.3%** | **60** | **18.4 MB** |
-| **Faster R-CNN** | 89.0% | 86.5% | 87.8% | 15 | 108.0 MB |
+Sau khi khởi chạy, trình duyệt sẽ tự động mở giao diện tại địa chỉ:  
+👉 **`http://localhost:8501`**
 
 ---
 
-## 👥 Thành Viên Thực Hiện (Contributors)
-
-* **Thành viên 1:** Data Lead & Preprocessing
-* **Thành viên 2:** Model Lead & Training (YOLOv8 / YOLO11)
-* **Thành viên 3:** System Lead (API, Streamlit UI & Report)
-
----
-
-## 📝 License
-
-Dự án phục vụ cho mục đích học tập môn **Nhập Môn Thị giác Máy tính (Introduction To Computer Vision)**.
+## 👥 6. Thông Tin Đồ Án
+- **Đề tài:** Nhận diện trang thiết bị bảo hộ lao động (PPE Detection) bằng Deep Learning.
+- **Mục đích:** Đồ án môn học / Báo cáo thực hành Computer Vision.
+- **Năm thực hiện:** 2026.
