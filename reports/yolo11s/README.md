@@ -37,8 +37,9 @@ Trọng số và ZIP được nhận diện bằng SHA256 trong `models/yolo11s/
 - `results.csv`, `results.png`: lịch sử train; `args.yaml`: cấu hình train gốc.
 - `environment.txt`: thư viện phiên Kaggle, dùng tham chiếu; không cài toàn bộ môi trường này lên máy local.
 - Confusion matrix, F1/PR curves và `examples/`: kết quả xuất sẵn từ Kaggle.
-- Notebook trong `notebooks/03_training_yolo11_kaggle.ipynb` giữ output thực thi gốc.
-  Code và tiêu đề được sửa nhãn model; chưa chạy lại train trên local.
+- Notebook trong `notebooks/03_training_yolo11_kaggle.ipynb` đã được chuẩn bị để
+  train lại trên dataset `ppe-5/data`, với output cũ được xóa. Báo cáo này vẫn
+  thuộc lần train trước; các file kết quả và bằng chứng gốc được giữ tại đây.
 
 ## Giới hạn
 

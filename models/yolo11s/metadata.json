@@ -23,5 +23,6 @@
     "Source validation/prediction directory names retain yolo11n; those are historical run names."
   ],
   "source_notebook_sha256": "b1081027e6ffbab67d3741e93be184570b0dde85b35eeb91e65a9d1e6920cb2c",
-  "repository_notebook_sha256": "263ce16ea542acd973d419e3b9cff4255000fcbbd9f4d39fdcfb6a19281cd3ce"
+  "repository_notebook_sha256": "263ce16ea542acd973d419e3b9cff4255000fcbbd9f4d39fdcfb6a19281cd3ce",
+  "repository_notebook_revision": "8b87dd0"
 }

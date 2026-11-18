@@ -157,6 +157,10 @@ Các notebook của dự án:
 2. [Tiền xử lý dữ liệu](notebooks/02_data_preprocessing.ipynb)
 3. [Huấn luyện YOLO11s trên Kaggle](notebooks/03_training_yolo11_kaggle.ipynb)
 
+Notebook huấn luyện hiện dùng dataset `/kaggle/input/datasets/duydq206/ppe5-data/ppe-5/data`
+và đọc class mapping từ `data.yaml`. Bảng kết quả ở trên thuộc lần train trước;
+cần chạy lại notebook để có checkpoint và số liệu cho dataset này.
+
 Xem các tùy chọn bằng `python main.py train --help`, `python main.py evaluate --help`
 hoặc `python main.py predict --help`.
 
