@@ -18,62 +18,20 @@ from ultralytics import YOLO
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Hệ Thống Nhận Diện PPE - Đồ Án Môn Học",
-    page_icon="🥽",
+    
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# Custom CSS cho giao diện hiện đại & học thuật
+# Giao diện tối giản
 st.markdown("""
 <style>
-    .main-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #1E88E5, #00C853);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.2rem;
-    }
-    .sub-title {
-        color: #546E7A;
-        font-size: 1.05rem;
-        margin-bottom: 1.2rem;
-    }
-    .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        border-left: 5px solid #1E88E5;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .alert-danger-box {
-        background-color: #ffebee;
-        border: 1px solid #ef5350;
-        border-left: 6px solid #d32f2f;
-        padding: 12px 16px;
-        border-radius: 8px;
-        color: #c62828;
-        font-weight: 600;
-        margin: 10px 0;
-    }
-    .alert-safe-box {
-        background-color: #e8f5e9;
-        border: 1px solid #66bb6a;
-        border-left: 6px solid #2e7d32;
-        padding: 12px 16px;
-        border-radius: 8px;
-        color: #1b5e20;
-        font-weight: 600;
-        margin: 10px 0;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-weight: 600;
-    }
+    .main-title { font-size: 1.8rem; font-weight: 650; margin-bottom: 0.2rem; color: inherit; }
+    .sub-title { color: #7a7a7a; font-size: 0.95rem; margin-bottom: 1rem; }
+    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
+    .stTabs [data-baseweb="tab"] { padding: 8px 14px; font-weight: 500; }
+    div[data-testid="stMetric"] { padding: 4px 0; }
+    .block-container { padding-top: 1.8rem; padding-bottom: 2rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -121,7 +79,7 @@ if YOLO11_PATH:
     }
 
 if not AVAILABLE_MODELS:
-    st.error("❌ Không tìm thấy file trọng số `yolo26n.pt` hoặc `yolo11.pt` trong thư mục `models/` hoặc `notebooks/`!")
+    st.error(" Không tìm thấy file trọng số `yolo26n.pt` hoặc `yolo11.pt` trong thư mục `models/` hoặc `notebooks/`!")
     st.stop()
 
 # ---------------------------------------------------------
@@ -193,8 +151,6 @@ def draw_ppe_boxes(image: np.ndarray, results, selected_classes=None, show_conf=
         # Text nhãn
         vn_label = info["vn"]
         label_text = f"{vn_label} {conf:.2f}" if show_conf else vn_label
-        if is_violation:
-            label_text = f"⚠ {label_text}"
             
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.55
@@ -235,84 +191,57 @@ def convert_video_to_h264(input_path: str, output_path: str) -> bool:
 # SIDEBAR: CẤU HÌNH MÔ HÌNH & THÔNG SỐ
 # ---------------------------------------------------------
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/safety-hat.png", width=70)
-    st.title("⚙️ Cấu Hình PPE")
-    
-    # 1. Chọn Model (mặc định yolo26n.pt)
+    st.title("Cấu hình")
     model_keys = list(AVAILABLE_MODELS.keys())
-    default_idx = 0
-    selected_model_name = st.selectbox(
-        "🧠 Chọn Mô Hình YOLO:",
-        options=model_keys,
-        index=default_idx,
-        help="YOLO26 Nano đạt mAP50 72.2% cao hơn YOLO11 (70.2%) và có tốc độ suy luận nhanh gấp ~3 lần!"
-    )
-    
+    selected_model_name = st.selectbox("Mô hình", options=model_keys, index=0)
     current_model_info = AVAILABLE_MODELS[selected_model_name]
-    
-    # Hiển thị tóm tắt thông số model đang chọn
-    st.info(f"""
-    **Đánh giá:** {current_model_info['tag']}  
-    - 📈 **mAP50:** `{current_model_info['mAP50']}`  
-    - 🎯 **Recall:** `{current_model_info['recall']}`  
-    - ⚡ **Tốc độ:** `{current_model_info['speed']}`  
-    - 💾 **Dung lượng:** `{current_model_info['size']}`
-    """)
-    
-    st.divider()
-    
-    # 2. Ngưỡng Confidence & IoU
-    conf_thresh = st.slider("🎯 Ngưỡng Tin Cậy (Confidence):", min_value=0.1, max_value=0.9, value=0.35, step=0.05)
-    iou_thresh = st.slider("📐 Ngưỡng IoU (NMS):", min_value=0.2, max_value=0.8, value=0.45, step=0.05)
-    
-    st.divider()
-    
-    # 3. Lọc Class hiển thị
-    all_class_names = list(CLASS_INFO.keys())
-    selected_classes = st.multiselect(
-        "🏷️ Các lớp PPE hiển thị:",
-        options=all_class_names,
-        default=all_class_names,
-        format_func=lambda x: f"{CLASS_INFO[x]['vn']} ({x})"
-    )
-    
-    show_confidence_text = st.checkbox("Hiển thị điểm tin cậy trên nhãn", value=True)
+    st.caption(f"mAP50: {current_model_info['mAP50']} · Recall: {current_model_info['recall']} · Size: {current_model_info['size']}")
 
-# Tải mô hình đã chọn
+    with st.expander("Thông số nâng cao", expanded=False):
+        conf_thresh = st.slider("Confidence", min_value=0.1, max_value=0.9, value=0.35, step=0.05)
+        iou_thresh = st.slider("IoU (NMS)", min_value=0.2, max_value=0.8, value=0.45, step=0.05)
+        all_class_names = list(CLASS_INFO.keys())
+        selected_classes = st.multiselect(
+            "Lớp cần hiển thị", options=all_class_names, default=all_class_names,
+            format_func=lambda x: f"{CLASS_INFO[x]['vn']} ({x})"
+        )
+        show_confidence_text = st.checkbox("Hiện confidence trên nhãn", value=True)
+
+ # Tải mô hình đã chọn
 with st.spinner("Đang khởi tạo mô hình..."):
     model = load_model(current_model_info["path"])
 
 # ---------------------------------------------------------
 # TIÊU ĐỀ CHÍNH
 # ---------------------------------------------------------
-st.markdown('<div class="main-title">🥽 Hệ Thống Giám Sát & Nhận Diện PPE Công Trường</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Đồ án môn học Thị giác máy tính (Computer Vision) — Tự động nhận diện trang bị bảo hộ lao động & Cảnh báo an toàn</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">PPE Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Nhận diện trang bị bảo hộ lao động trên ảnh, video và camera</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # TABS GIAO DIỆN
 # ---------------------------------------------------------
 tab_image, tab_video, tab_webcam, tab_compare = st.tabs([
-    "🖼️ Nhận Diện Ảnh (Image)",
-    "🎬 Nhận Diện Video",
-    "📷 Chụp Ảnh Trực Tiếp (Camera)",
-    "📊 So Sánh Hiệu Năng Mô Hình (Benchmark)"
+    "Ảnh",
+    "Video",
+    "Camera",
+    "Benchmark"
 ])
 
 # =========================================================
 # TAB 1: NHẬN DIỆN ẢNH
 # =========================================================
 with tab_image:
-    st.subheader("Nhận Diện Trang Bị Bảo Hộ Qua Hình Ảnh")
+    st.subheader("Phân tích ảnh")
     
     img_col1, img_col2 = st.columns([1, 2])
     
     with img_col1:
-        img_source = st.radio("Chọn nguồn ảnh:", ["Tải ảnh lên từ máy tính", "Chọn ảnh mẫu có sẵn (Dataset)"], horizontal=True)
+        img_source = st.radio("Nguồn ảnh:", ["Tải ảnh lên", "Ảnh mẫu"], horizontal=True)
         
         input_image = None
         
-        if img_source == "Tải ảnh lên từ máy tính":
-            uploaded_file = st.file_uploader("Chọn ảnh cần phân tích (JPG, PNG, JPEG, WEBP):", type=["jpg", "jpeg", "png", "webp"])
+        if img_source == "Tải ảnh lên":
+            uploaded_file = st.file_uploader("Tải ảnh (JPG, PNG, WEBP):", type=["jpg", "jpeg", "png", "webp"])
             if uploaded_file is not None:
                 file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
                 input_image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -330,7 +259,7 @@ with tab_image:
             else:
                 st.warning("Không tìm thấy đường dẫn `data/raw/test/images`.")
                 
-        run_img_btn = st.button("🚀 Phân Tích & Nhận Diện PPE", type="primary", use_container_width=True)
+        run_img_btn = st.button("Phân tích ảnh", type="primary", use_container_width=True)
 
     with img_col2:
         if input_image is not None:
@@ -357,21 +286,13 @@ with tab_image:
                 # Cảnh báo vi phạm
                 total_violations = len(violations)
                 if total_violations > 0:
-                    st.markdown(f"""
-                    <div class="alert-danger-box">
-                        🚨 CẢNH BÁO VI PHẠM: Phát hiện {total_violations} lỗi vi phạm quy định an toàn (Không mũ bảo hộ / Không áo phản quang)!
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.error(f"Phát hiện {total_violations} trường hợp vi phạm PPE.")
                 else:
-                    st.markdown("""
-                    <div class="alert-safe-box">
-                        ✅ AN TOÀN LAO ĐỘNG: 100% công nhân được trang bị đầy đủ PPE hợp lệ!
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.success("Không phát hiện vi phạm PPE.")
                 
                 # Hiển thị ảnh so sánh hoặc ảnh kết quả
-                view_mode = st.radio("Chế độ hiển thị:", ["Ảnh Kết Quả Nhận Diện", "So Sánh Gốc vs Kết Quả"], horizontal=True)
-                if view_mode == "Ảnh Kết Quả Nhận Diện":
+                view_mode = st.radio("Hiển thị:", ["Kết quả", "So sánh ảnh gốc và kết quả"], horizontal=True)
+                if view_mode == "Kết quả":
                     st.image(annotated_rgb, caption=f"Kết quả nhận diện ({inf_time:.1f}ms)", use_container_width=True)
                 else:
                     c1, c2 = st.columns(2)
@@ -379,12 +300,12 @@ with tab_image:
                     c2.image(annotated_rgb, caption=f"Ảnh Nhận Diện ({inf_time:.1f}ms)", use_container_width=True)
                 
                 # Bảng số liệu thống kê nhanh
-                st.markdown("### 📊 Thống Kê Trang Bị Trong Ảnh")
+                st.markdown("### Thống kê")
                 cols = st.columns(4)
                 cols[0].metric("Công Nhân (Person)", counts.get("person", 0))
                 cols[1].metric("Đội Mũ (Helmet)", counts.get("helmet", 0) + counts.get("helmet on", 0))
                 cols[2].metric("Áo Phản Quang (Vest)", counts.get("vest", 0))
-                cols[3].metric("Số Lỗi Vi Phạm ⚠️", total_violations, delta=-total_violations if total_violations > 0 else 0, delta_color="inverse")
+                cols[3].metric("Số Lỗi Vi Phạm ️", total_violations, delta=-total_violations if total_violations > 0 else 0, delta_color="inverse")
                 
                 # Nút tải ảnh kết quả
                 res_pil = Image.fromarray(annotated_rgb)
@@ -392,35 +313,35 @@ with tab_image:
                 res_pil.save(temp_buf.name, format="JPEG", quality=95)
                 with open(temp_buf.name, "rb") as f:
                     st.download_button(
-                        label="📥 Tải Ảnh Kết Quả Về Máy",
+                        label="Tải ảnh kết quả",
                         data=f.read(),
                         file_name="ppe_detection_result.jpg",
                         mime="image/jpeg",
                         use_container_width=True
                     )
         else:
-            st.info("👈 Hãy tải lên một ảnh hoặc chọn ảnh mẫu từ cột bên trái để bắt đầu.")
+            st.info("Hãy tải lên một ảnh hoặc chọn ảnh mẫu từ cột bên trái để bắt đầu.")
 
 # =========================================================
 # TAB 2: NHẬN DIỆN VIDEO
 # =========================================================
 with tab_video:
-    st.subheader("Nhận Diện Trang Bị Bảo Hộ Trên Video")
+    st.subheader("Phân tích video")
     
     vid_col1, vid_col2 = st.columns([1, 2])
     
     with vid_col1:
-        uploaded_video = st.file_uploader("Tải lên tệp video (MP4, AVI, MOV, MKV):", type=["mp4", "avi", "mov", "mkv"])
+        uploaded_video = st.file_uploader("Tải video (MP4, AVI, MOV, MKV):", type=["mp4", "avi", "mov", "mkv"])
         
         frame_skip = st.select_slider(
-            "Tối ưu tốc độ xử lý (Frame Skip):",
+            "Frame skip:",
             options=[1, 2, 3, 4, 5],
             value=2,
             help="Bỏ qua khung hình giúp xử lý video dài nhanh hơn nhiều lần mà vẫn đảm bảo độ chính xác theo dõi."
         )
         
-        show_live_feed = st.checkbox("Hiển thị khung hình trực tiếp khi đang xử lý", value=True)
-        start_video_btn = st.button("🎬 Bắt Đầu Nhận Diện Video", type="primary", use_container_width=True)
+        show_live_feed = st.checkbox("Hiện preview khi xử lý", value=True)
+        start_video_btn = st.button(" Xử lý video", type="primary", use_container_width=True)
         
     with vid_col2:
         if uploaded_video is not None:
@@ -494,38 +415,38 @@ with tab_video:
                 out_writer.release()
                 
                 progress_bar.progress(1.0)
-                status_text.success(f"🎉 Hoàn thành xử lý {processed_count} frames trong {time.time()-start_time:.1f}s!")
+                status_text.success(f" Hoàn thành xử lý {processed_count} frames trong {time.time()-start_time:.1f}s!")
                 
                 final_h264_path = tempfile.mktemp(suffix=".mp4")
                 with st.spinner("Đang chuẩn hóa định dạng video để hiển thị..."):
                     h264_success = convert_video_to_h264(raw_out_path, final_h264_path)
                     video_to_display = final_h264_path if h264_success else raw_out_path
                 
-                st.markdown("### 🎬 Video Kết Quả")
+                st.markdown("###  Kết quả video")
                 st.video(video_to_display)
                 
                 with open(video_to_display, "rb") as f:
                     st.download_button(
-                        label="📥 Tải Video Kết Quả Nhận Diện",
+                        label="Tải video kết quả",
                         data=f.read(),
                         file_name=f"ppe_detected_{Path(uploaded_video.name).stem}.mp4",
                         mime="video/mp4",
                         use_container_width=True
                     )
         else:
-            st.info("👈 Vui lòng tải lên một tệp video ở cột bên trái.")
+            st.info("Vui lòng tải lên một tệp video ở cột bên trái.")
 
 # =========================================================
 # TAB 3: CAMERA TRỰC TIẾP (WEBCAM)
 # =========================================================
 with tab_webcam:
-    st.subheader("Kiểm Soát Trang Bị An Toàn Qua Camera")
+    st.subheader("Camera")
     st.write("Sử dụng camera của thiết bị để kiểm tra nhanh công nhân trước khi vào công trường.")
     
     cam_col1, cam_col2 = st.columns(2)
     
     with cam_col1:
-        camera_img = st.camera_input("Chụp ảnh kiểm tra an toàn:")
+        camera_img = st.camera_input("Chụp ảnh:")
         
     with cam_col2:
         if camera_img is not None:
@@ -543,9 +464,9 @@ with tab_webcam:
                 annotated_rgb = cv2.cvtColor(annotated_bgr, cv2.COLOR_BGR2RGB)
                 
                 if len(violations) > 0:
-                    st.error(f"🚨 CẢNH BÁO: Phát hiện {len(violations)} vi phạm! Yêu cầu trang bị đầy đủ trước khi vào khu vực thi công.")
+                    st.error(f" Phát hiện {len(violations)} vi phạm PPE.")
                 else:
-                    st.success("✅ ĐỦ TIÊU CHUẨN AN TOÀN: Đạt chuẩn PPE!")
+                    st.success(" Không phát hiện vi phạm PPE.")
                     
                 st.image(annotated_rgb, caption=f"Thời gian suy luận: {t_infer:.1f}ms", use_container_width=True)
 
@@ -553,14 +474,14 @@ with tab_webcam:
 # TAB 4: SO SÁNH HIỆU NĂNG MÔ HÌNH (BENCHMARK)
 # =========================================================
 with tab_compare:
-    st.subheader("So Sánh Hiệu Năng: YOLO26 Nano vs YOLO11 Small")
+    st.subheader("So sánh mô hình: YOLO26 Nano và YOLO11 Small")
     st.markdown("""
     Dựa trên kết quả huấn luyện thực nghiệm 100 epochs trên cùng bộ dữ liệu PPE (`data.yaml`):
     """)
     
     benchmark_data = {
         "Tiêu Chí So Sánh": [
-            "🏆 Đánh Giá Tổng Quan",
+            " Đánh Giá Tổng Quan",
             "Kiến Trúc Mô Hình (Backbone)",
             "Kích Thước Trọng Số (.pt)",
             "Độ Chính Xác mAP@0.50 (B)",
@@ -571,7 +492,7 @@ with tab_compare:
             "Khả Năng Triển Khai Video/Webcam"
         ],
         "YOLO26 Nano (yolo26n.pt)": [
-            "🥇 TỐT NHẤT (Khuyên dùng)",
+            " TỐT NHẤT (Khuyên dùng)",
             "YOLO26 Nano (Thế hệ mới nhất)",
             "5.46 MB (Siêu nhẹ)",
             "72.20% (Cao hơn)",
@@ -582,7 +503,7 @@ with tab_compare:
             "Rất mượt trên mọi thiết bị & CPU"
         ],
         "YOLO11 Small (yolo11.pt)": [
-            "🥈 Xếp sau",
+            " Xếp sau",
             "YOLO11 Small",
             "19.19 MB (Nặng hơn 3.5x)",
             "70.25%",
@@ -597,7 +518,7 @@ with tab_compare:
     st.table(df_bm)
     
     st.markdown("""
-    ### 💡 Kết luận & Khuyến nghị thực nghiệm:
+    ###  Kết luận & Khuyến nghị thực nghiệm:
     1. **Tại sao nên chọn `yolo26n.pt`?**
        - **mAP50 cao hơn (+1.95%)**: Đạt **72.2%** so với 70.25% của YOLO11.
        - **Recall cao hơn**: Đạt **80.67%**, đây là chỉ số tối quan trọng trong an toàn lao động nhằm **tránh bỏ sót các trường hợp công nhân không đội mũ hoặc không mặc áo bảo hộ**.
